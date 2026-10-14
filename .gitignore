@@ -1,0 +1,68 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Apache Spark temporary and warehouse files
+spark-warehouse/
+metastore_db/
+derby.log
+*.parquet/
+checkpoint/
+checkpoints/
+
+# Datasets and large data files (DO NOT COMMIT RAW CSV DATA)
+data/*.csv
+data/*.gz
+data/*.zip
+data/*.tar
+data/*.parquet
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor settings
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Local test scratchpads
+scratch/
+test_tmp/
