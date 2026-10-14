@@ -1,0 +1,5 @@
+Model,Accuracy (%),Weighted Prec (%),Weighted Rec (%),Weighted F1 (%),5-Fold CV Acc (%),Training Time (s),Prediction Latency (s)
+OneVsRest Logistic Regression,82.48,82.19,82.48,80.72,N/A,82.438,6.2053
+Random Forest Classifier,95.52,95.51,95.52,95.5,N/A,5.5317,0.995
+OneVsRest Decision Tree,95.72,96.66,95.72,95.82,N/A,10.9388,4.6344
+Gradient-Boosted Trees (XGBoost Equivalent),96.54,96.95,96.54,96.61,N/A,52.286,3.8469

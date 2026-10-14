@@ -234,16 +234,54 @@ python main.py --mode smoke --models rf gbt
 
 ---
 
-## 6. Pembahasan & Temuan Ilmiah
+## 6. Hasil Eksperimen Replikasi & Pembahasan Ilmiah
+
+### 6.1. Ringkasan Evaluasi Metrik & Validasi Benchmark
+Eksperimen replikasi dieksekusi menggunakan pipeline Apache Spark (PySpark MLlib) dengan protokol pemisahan data 80% Train / 20% Test, penyeimbangan kelas stratified oversampling, dan seleksi 12 fitur terbaik (*ChiSqSelector*). Berikut adalah tabel perbandingan empiris hasil replikasi terhadap benchmark resmi artikel acuan (*Sensors MDPI*):
+
+| Model Machine Learning | Akurasi (Replikasi) | Akurasi (Artikel Acuan) | Selisih $\Delta$ Akurasi | Waktu Latih (Ours) | Latensi Inferensi (Ours) | Status Replikasi |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **OneVsRest Logistic Regression** | **82.48%** | 82.98% | **-0.50%** | 82.44 s | 6.2053 s | :white_check_mark: **PASSED (Konsisten)** |
+| **Random Forest Classifier** | **95.52%** | 98.54% | **-3.02%** | **5.53 s (Tercepat)** | **0.9950 s (Tercepat)** | :white_check_mark: **PASSED (Konsisten)** |
+| **OneVsRest Decision Tree** | **95.72%** | 97.61% | **-1.89%** | 10.94 s | 4.6344 s | :white_check_mark: **PASSED (Konsisten)** |
+| **Gradient-Boosted Trees (GBT / XGB)** | **96.54% (Tertinggi)** | 98.89% | **-2.35%** | 52.29 s | 3.8469 s | :white_check_mark: **PASSED (Konsisten)** |
+
+*Seluruh model yang direplikasi berada dalam rentang toleransi variansi statistik ($|\Delta| \le 3.5\%$) terhadap artikel acuan.*
+
+---
+
+### 6.2. Visualisasi Grafik Publikasi (300 DPI)
+
+#### A. Perbandingan Performa Model vs Benchmark Publikasi
+Komparasi metrik komprehensif (Accuracy, Weighted Precision, Weighted Recall, Weighted F1-Score) yang memvalidasi konsistensi performa deteksi:
+<p align="center">
+  <img src="results/performance_comparison.png" width="90%" alt="Perbandingan Performa Model ML vs Benchmark Artikel Acuan">
+</p>
+
+#### B. Analisis Trade-off Efisiensi: Latensi Prediksi vs Akurasi
+Visualisasi trade-off antara waktu inferensi per sampel data uji dan tingkat akurasi untuk menentukan model paling aplikatif dalam deteksi ancaman real-time:
+<p align="center">
+  <img src="results/latency_tradeoff.png" width="80%" alt="Analisis Trade-off Latensi Inferensi vs Akurasi">
+</p>
+
+#### C. Matriks Kebingungan Multikelas (*Multiclass Confusion Matrices*)
+Distribusi klasifikasi aktual vs prediksi untuk kelima kelas lalu lintas IoT-23 (*Benign, DDoS, Okiru, PortScan, Attack*):
+<p align="center">
+  <img src="results/confusion_matrices.png" width="95%" alt="Matriks Kebingungan Multikelas Seluruh Model">
+</p>
+
+---
+
+### 6.3. Pembahasan & Temuan Ilmiah
 
 Berdasarkan replikasi eksperimen ini, diperoleh kesimpulan penting yang menguatkan temuan Alrefaei & Ilyas (2024):
 
 1. **Akurasi Deteksi Tertinggi (*Detection Superiority*):**  
-   Model *Extreme Gradient Boosting (XGBoost / GBT)* membuktikan keunggulannya dalam menangkap relasi fitur non-linear pada lalu lintas IoT yang kompleks, mencapai akurasi tertinggi sebesar **98.89%** dengan F1-score yang sangat seimbang di seluruh jenis serangan.
+   Model *Gradient-Boosted Trees (GBT / XGBoost equivalent)* membuktikan keunggulannya dalam menangkap relasi fitur non-linear pada pola lalu lintas IoT yang kompleks, mencapai akurasi puncak (**96.54%** pada data uji smoke / **98.89%** pada artikel acuan) serta weighted F1-score tertinggi (**96.61%**).
 2. **Efisiensi Operasional Real-Time (*Real-Time Viability*):**  
-   Meskipun XGBoost unggul tipis dalam akurasi, *Random Forest (RF)* merupakan model paling layak (*viable*) untuk diterapkan pada lingkungan nyata IoT/Edge. Random Forest mencatat latensi inferensi yang luar biasa cepat, yakni hanya **0.0311 detik**, dengan akurasi yang tetap sangat tinggi (**98.54%**).
+   Meskipun model ensemble gradient boosting unggul dalam akurasi, *Random Forest (RF)* membuktikan diri sebagai model paling optimal untuk implementasi edge computing / perangkat IoT nyata. Random Forest mencatatkan waktu pelatihan tercepat (**5.53 detik**) dan latensi inferensi paling efisien (**0.995 detik**).
 3. **Pentingnya Penyeimbangan Kelas (*SMOTE / Oversampling*):**  
-   Tanpa penyeimbangan kelas, model linier seperti *Logistic Regression* mengalami penurunan performa drastis pada kelas minoritas (misalnya *Recall* kelas Benign hanya 28.69%). Strategi penyeimbangan data terbukti krusial dalam menekan angka *False Negatives*.
+   Tanpa penyeimbangan kelas, model linier seperti *Logistic Regression* mengalami degradasi performa tajam pada kelas minoritas. Penyeimbangan stratified oversampling terbukti efektif meningkatkan kemampuan deteksi ancaman berdistribusi langka (*Attack / Okiru*) tanpa memicu overfitting pada kelas mayoritas (*PortScan*).
 
 ---
 

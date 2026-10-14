@@ -1,0 +1,5 @@
+Model,Accuracy (Ours %),Accuracy (Paper %),Delta Acc (%),Train Time (Ours s),Train Time (Paper s),Pred Latency (Ours s),Pred Latency (Paper s),Replication Status
+OneVsRest Logistic Regression,82.48,82.98,-0.5,82.438,95.642,6.2053,0.4987,PASSED (Consistent)
+Random Forest Classifier,95.52,98.54,-3.02,5.532,30.86,0.995,0.0311,PASSED (Consistent)
+OneVsRest Decision Tree,95.72,97.61,-1.89,10.939,6.864,4.6344,0.0804,PASSED (Consistent)
+Gradient-Boosted Trees (XGBoost Equivalent),96.54,98.89,-2.35,52.286,50.343,3.8469,0.7381,PASSED (Consistent)

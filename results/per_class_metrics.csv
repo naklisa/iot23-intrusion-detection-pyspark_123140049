@@ -1,0 +1,21 @@
+Model,Class,Support,Precision (%),Recall (%),F1 Score (%)
+OneVsRest Logistic Regression,Benign,77,96.15,97.4,96.77
+OneVsRest Logistic Regression,DDoS,48,53.33,33.33,41.03
+OneVsRest Logistic Regression,Okiru,93,87.72,53.76,66.67
+OneVsRest Logistic Regression,PartOfAHorizontalPortScan,242,80.13,100.0,88.97
+OneVsRest Logistic Regression,Attack,31,91.67,70.97,80.0
+Random Forest Classifier,Benign,77,100.0,97.4,98.68
+Random Forest Classifier,DDoS,48,80.43,77.08,78.72
+Random Forest Classifier,Okiru,93,88.42,90.32,89.36
+Random Forest Classifier,PartOfAHorizontalPortScan,242,100.0,100.0,100.0
+Random Forest Classifier,Attack,31,93.94,100.0,96.88
+OneVsRest Decision Tree,Benign,77,98.67,96.1,97.37
+OneVsRest Decision Tree,DDoS,48,73.85,100.0,84.96
+OneVsRest Decision Tree,Okiru,93,100.0,81.72,89.94
+OneVsRest Decision Tree,PartOfAHorizontalPortScan,242,100.0,100.0,100.0
+OneVsRest Decision Tree,Attack,31,90.91,96.77,93.75
+Gradient-Boosted Trees (XGBoost Equivalent),Benign,77,100.0,96.1,98.01
+Gradient-Boosted Trees (XGBoost Equivalent),DDoS,48,79.31,95.83,86.79
+Gradient-Boosted Trees (XGBoost Equivalent),Okiru,93,97.62,88.17,92.66
+Gradient-Boosted Trees (XGBoost Equivalent),PartOfAHorizontalPortScan,242,100.0,100.0,100.0
+Gradient-Boosted Trees (XGBoost Equivalent),Attack,31,90.91,96.77,93.75
