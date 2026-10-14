@@ -325,10 +325,23 @@ def plot_performance_comparison(
     ax.axhline(98.89, color="#d62728", linestyle="--", linewidth=1.2, label="Paper Peak Accuracy (XGB: 98.89%)")
     ax.axhline(98.54, color="#e377c2", linestyle=":", linewidth=1.2, label="Paper RF Accuracy (98.54%)")
 
+    display_names = []
+    for m in model_names:
+        if "Logistic" in m:
+            display_names.append("Logistic Regression\n(OVR)")
+        elif "Random Forest" in m:
+            display_names.append("Random Forest")
+        elif "Decision Tree" in m:
+            display_names.append("Decision Tree\n(OVR)")
+        elif "Gradient" in m or "GBT" in m:
+            display_names.append("Gradient-Boosted\nTrees (GBT / XGB)")
+        else:
+            display_names.append(m)
+
     ax.set_ylabel("Metric Score (%)", fontsize=11, fontweight="bold")
     ax.set_title("Performance Comparison across Models vs Alrefaei & Ilyas (2024) Benchmark", fontsize=13, fontweight="bold", pad=15)
     ax.set_xticks(x)
-    ax.set_xticklabels([m.replace(" Classifier", "").replace("OneVsRest ", "OVR ") for m in model_names], fontsize=10)
+    ax.set_xticklabels(display_names, fontsize=10, fontweight="bold")
     ax.set_ylim(70, 103)
     ax.grid(axis="y", linestyle="--", alpha=0.5)
     ax.legend(loc="lower right", framealpha=0.9)
@@ -359,59 +372,131 @@ def plot_latency_tradeoff(
     output_path: Path = LATENCY_TRADEOFF_PNG
 ):
     """
-    Generates a dual-panel trade-off chart visualizing:
+    Generates a polished dual-panel publication trade-off chart visualizing:
     1. Prediction Latency (seconds) vs Accuracy (Real-time IoT Edge viability).
-    2. Training Time (seconds) across models.
+       Features clean rounded callouts with pointer arrows and zero label collisions.
+    2. Training Time (seconds) across models with multiline bold ticks and headroom.
     Highlights Random Forest's rapid 0.0311s inference time demonstrated in the paper.
     """
     if not all_results:
         return
 
-    model_names = [r["model_name"].replace(" Classifier", "").replace("OneVsRest ", "OVR ") for r in all_results]
+    def clean_model_name(raw_name: str) -> str:
+        if "Logistic" in raw_name:
+            return "Logistic Regression (OVR)"
+        elif "Random Forest" in raw_name:
+            return "Random Forest"
+        elif "Decision Tree" in raw_name:
+            return "Decision Tree (OVR)"
+        elif "Gradient" in raw_name or "GBT" in raw_name:
+            return "GBT (XGBoost Eq.)"
+        return raw_name
+
+    def multiline_label(raw_name: str) -> str:
+        if "Logistic" in raw_name:
+            return "Logistic Regression\n(OVR)"
+        elif "Random Forest" in raw_name:
+            return "Random Forest"
+        elif "Decision Tree" in raw_name:
+            return "Decision Tree\n(OVR)"
+        elif "Gradient" in raw_name or "GBT" in raw_name:
+            return "Gradient-Boosted\nTrees (GBT)"
+        return raw_name
+
+    short_names = [clean_model_name(r["model_name"]) for r in all_results]
+    bar_names = [multiline_label(r["model_name"]) for r in all_results]
     pred_times = [r["prediction_time_s"] for r in all_results]
     train_times = [r["training_time_s"] for r in all_results]
     accuracies = [r["accuracy"] * 100 for r in all_results]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5), dpi=300)
+    palette = ["#2b5c8f", "#2e7d32", "#d97706", "#c0392b"][:len(short_names)]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6), dpi=300)
 
     # Panel 1: Prediction Latency vs Accuracy Scatter
-    scatter_colors = ["#1f77b4", "#2ca02c", "#ff7f0e", "#d62728"][:len(model_names)]
-    for i, name in enumerate(model_names):
-        ax1.scatter(pred_times[i], accuracies[i], s=200, color=scatter_colors[i], label=name, edgecolors="black", linewidth=1.2, zorder=5)
-        ax1.annotate(
-            f"{name}\n({pred_times[i]:.4f}s, {accuracies[i]:.1f}%)",
-            (pred_times[i], accuracies[i]),
-            textcoords="offset points",
-            xytext=(10, -5),
-            fontsize=9,
-            fontweight="bold"
+    for i, name in enumerate(short_names):
+        ax1.scatter(
+            pred_times[i], accuracies[i],
+            s=220, color=palette[i],
+            label=name, edgecolors="#1a1a1a", linewidth=1.5, zorder=5
         )
 
-    # Reference point for paper RF
-    ax1.scatter(0.0311, 98.54, s=150, color="#8c564b", marker="*", label="Paper RF (0.0311s)", edgecolors="black", zorder=6)
+    # Reference point for paper RF benchmark
+    ax1.scatter(
+        0.0311, 98.54,
+        s=250, color="#8e44ad", marker="*",
+        label="Paper RF (0.0311s, 98.54%)",
+        edgecolors="#1a1a1a", linewidth=1.2, zorder=6
+    )
+
+    # Non-overlapping callout placement: (dx, dy, ha, va, rad)
+    annotation_configs = {
+        "Logistic Regression (OVR)": (-25, 25, "right", "bottom", -0.15),
+        "Random Forest": (-25, -28, "right", "top", 0.15),
+        "Decision Tree (OVR)": (25, -28, "left", "top", -0.15),
+        "GBT (XGBoost Eq.)": (25, 25, "left", "bottom", 0.15),
+    }
+
+    for i, name in enumerate(short_names):
+        dx, dy, ha, va, rad = annotation_configs.get(name, (20, 10, "left", "center", 0.0))
+        ax1.annotate(
+            f"{name}\n({pred_times[i]:.4f}s, {accuracies[i]:.1f}%)",
+            xy=(pred_times[i], accuracies[i]),
+            xytext=(dx, dy),
+            textcoords="offset points",
+            ha=ha, va=va,
+            fontsize=9,
+            fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.35", facecolor="#fefefe", edgecolor="#b0bec5", alpha=0.92, lw=0.9),
+            arrowprops=dict(arrowstyle="->", connectionstyle=f"arc3,rad={rad}", color="#455a64", lw=1.1)
+        )
+
+    # Annotate Paper RF Reference Star
+    ax1.annotate(
+        "Paper RF Benchmark\n(0.0311s, 98.54%)",
+        xy=(0.0311, 98.54),
+        xytext=(25, -22),
+        textcoords="offset points",
+        ha="left", va="top",
+        fontsize=9,
+        fontweight="bold",
+        color="#4a148c",
+        bbox=dict(boxstyle="round,pad=0.35", facecolor="#fdfbf7", edgecolor="#ba68c8", alpha=0.92, lw=0.9),
+        arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=-0.15", color="#8e44ad", lw=1.1)
+    )
 
     ax1.set_xlabel("Prediction Latency (Seconds, Log Scale)", fontsize=11, fontweight="bold")
     ax1.set_ylabel("Overall Accuracy (%)", fontsize=11, fontweight="bold")
-    ax1.set_title("Real-Time Viability: Latency vs Detection Accuracy", fontsize=12, fontweight="bold")
+    ax1.set_title("Real-Time Viability: Latency vs Detection Accuracy", fontsize=12, fontweight="bold", pad=12)
     ax1.set_xscale("log")
-    ax1.grid(True, linestyle="--", alpha=0.5)
-    ax1.legend(loc="lower left", fontsize=9)
+    ax1.set_xlim(0.015, 20)
+    ax1.set_ylim(80, 102)
+    ax1.set_yticks([80, 85, 90, 95, 100])
+    ax1.grid(True, which="both", linestyle="--", alpha=0.45)
+    ax1.legend(loc="lower left", fontsize=9, framealpha=0.92, edgecolor="#cccccc")
 
     # Panel 2: Training Time Bar Chart
-    bars = ax2.bar(model_names, train_times, color="#4c72b0", edgecolor="black", width=0.5)
+    bars = ax2.bar(range(len(bar_names)), train_times, color=palette, edgecolor="#1a1a1a", linewidth=1.2, width=0.55)
     ax2.set_ylabel("Training Time (Seconds)", fontsize=11, fontweight="bold")
-    ax2.set_title("Computational Efficiency: Model Training Wall-Clock Time", fontsize=12, fontweight="bold")
-    ax2.grid(axis="y", linestyle="--", alpha=0.5)
+    ax2.set_title("Computational Efficiency: Model Training Wall-Clock Time", fontsize=12, fontweight="bold", pad=12)
+    ax2.set_xticks(range(len(bar_names)))
+    ax2.set_xticklabels(bar_names, fontsize=9.5, fontweight="bold")
+    ax2.set_ylim(0, max(train_times) * 1.18)
+    ax2.grid(axis="y", linestyle="--", alpha=0.45)
 
     for bar in bars:
         h = bar.get_height()
-        ax2.annotate(f"{h:.2f}s",
-                     xy=(bar.get_x() + bar.get_width() / 2, h),
-                     xytext=(0, 3),
-                     textcoords="offset points",
-                     ha="center", va="bottom", fontsize=9, fontweight="bold")
+        ax2.annotate(
+            f"{h:.2f}s",
+            xy=(bar.get_x() + bar.get_width() / 2, h),
+            xytext=(0, 4),
+            textcoords="offset points",
+            ha="center", va="bottom",
+            fontsize=9.5,
+            fontweight="bold"
+        )
 
-    plt.tight_layout()
+    plt.tight_layout(pad=2.5)
     fig.savefig(output_path, bbox_inches="tight")
     plt.close(fig)
     logger.info(f"Latency trade-off plot saved to: {output_path}")
